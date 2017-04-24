@@ -1,0 +1,75 @@
+---
+
+- name: install apt-transport-https for prerequisite
+  apt:
+    name: apt-transport-https
+    state: present
+    update_cache: yes
+
+- name: import linyows/octopass key
+  apt_key:
+    id: 871257A0BC9106C4
+    url: https://packagecloud.io/linyows/octopass/gpgkey
+    state: present
+
+- name: octopass apt configuration
+  template:
+    src: linyows_octopass.list
+    dest: /etc/apt/sources.list.d/linyows_octopass.list
+
+- name: install octopass
+  apt:
+    name: octopass
+    state: present
+    update_cache: yes
+
+- name: octopass configuration
+  template:
+    src: octopass.conf
+    dest: /etc/octopass.conf
+    owner: root
+    mode: 0600
+
+- name: try octopass could get passwd
+  command: '/usr/bin/octopass passwd'
+  register: octopass_passwd
+  failed_when: octopass_passwd.stdout == ''
+
+- name: configure sshd
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: '{{ item }}'
+    validate: '/usr/sbin/sshd -t -f %s'
+  with_items:
+    - 'AuthorizedKeysCommandUser root'
+    - 'AuthorizedKeysCommand /usr/bin/octopass'
+    - 'UsePAM yes'
+    - 'PasswordAuthentication no'
+  notify:
+    - restart sshd
+
+- name: configure nss switch
+  lineinfile:
+    path: /etc/nsswitch.conf
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+    backrefs: yes
+  with_items:
+    - {regexp: '^passwd:\s+(.*)$', line: 'passwd:     \1 octopass'}
+    - {regexp: '^shadow:\s+(.*)$', line: 'shadow:     \1 octopass'}
+    - {regexp: '^group:\s+(.*)$',  line: 'group:      \1 octopass'}
+
+- name: comment out common-auth in pam configuration
+  lineinfile:
+    path: /etc/pam.d/sshd
+    regexp: '@include common-auth'
+    line: '#@include common-auth'
+
+- name: pam configuration
+  lineinfile:
+    path: /etc/pam.d/sshd
+    line: '{{ item }}'
+  with_items:
+    - 'auth requisite pam_exec.so quiet expose_authtok /usr/bin/octopass pam'
+    - 'auth optional pam_unix.so not_set_pass use_first_pass nodelay'
+    - 'session required pam_mkhomedir.so skel: /etc/skel/ umask: 0022'

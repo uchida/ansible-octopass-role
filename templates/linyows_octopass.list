@@ -1,0 +1,2 @@
+deb https://packagecloud.io/linyows/octopass/{{ ansible_distribution | lower }}/ {{ ansible_distribution_release }} main
+deb-src https://packagecloud.io/linyows/octopass/{{ ansible_distribution | lower }}/ {{ ansible_distribution_release }} main
