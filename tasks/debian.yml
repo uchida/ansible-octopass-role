@@ -55,9 +55,9 @@
     line: '{{ item.line }}'
     backrefs: yes
   with_items:
-    - {regexp: '^passwd:\s+(.*)$', line: 'passwd:     \1 octopass'}
-    - {regexp: '^shadow:\s+(.*)$', line: 'shadow:     \1 octopass'}
-    - {regexp: '^group:\s+(.*)$',  line: 'group:      \1 octopass'}
+    - {regexp: '^passwd:\s+(.*?)($|\soctopass$)', line: 'passwd:     \1 octopass'}
+    - {regexp: '^shadow:\s+(.*?)($|\soctopass$)', line: 'shadow:     \1 octopass'}
+    - {regexp: '^group: \s+(.*?)($|\soctopass$)', line: 'group:      \1 octopass'}
 
 - name: pam configuration
   lineinfile:
