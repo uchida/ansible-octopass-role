@@ -33,6 +33,7 @@
 - name: try octopass could get passwd
   command: '/usr/bin/octopass passwd'
   register: octopass_passwd
+  changed_when: False
   failed_when: octopass_passwd.stdout == ''
 
 - name: configure sshd
