@@ -12,7 +12,7 @@
     url: https://packagecloud.io/linyows/octopass/gpgkey
     state: present
 
-- name: octopass apt configuration
+- name: configure octopass apt repository
   template:
     src: linyows_octopass.list
     dest: /etc/apt/sources.list.d/linyows_octopass.list
@@ -23,7 +23,7 @@
     state: present
     update_cache: yes
 
-- name: octopass configuration
+- name: configure octopass
   template:
     src: octopass.conf
     dest: /etc/octopass.conf
@@ -60,7 +60,7 @@
     - {regexp: '^shadow:\s+(.*?)($|\soctopass$)', line: 'shadow:     \1 octopass'}
     - {regexp: '^group: \s+(.*?)($|\soctopass$)', line: 'group:      \1 octopass'}
 
-- name: pam configuration
+- name: configure pam sshd
   lineinfile:
     path: /etc/pam.d/sshd
     line: '{{ item.line }}'
